@@ -46,21 +46,24 @@ async def get_history_sensor_service(period: PeriodValue,
     count = await SensorRepository.get_count(period_start, db)
 
     stats_row = await SensorRepository.get_stats(period_start, db)
+    def _f(v):
+        return float(v) if v is not None else None
+
     stats = {
         "temperature": {
-            "min": stats_row[0],
-            "max": stats_row[1],
-            "avg": stats_row[2],
+            "min": _f(stats_row[0]),
+            "max": _f(stats_row[1]),
+            "avg": _f(stats_row[2]),
         },
         "humidity": {
-            "min": stats_row[3],
-            "max": stats_row[4],
-            "avg": stats_row[5],
+            "min": _f(stats_row[3]),
+            "max": _f(stats_row[4]),
+            "avg": _f(stats_row[5]),
         },
         "light_level": {
-            "min": stats_row[6],
-            "max": stats_row[7],
-            "avg": stats_row[8],
+            "min": _f(stats_row[6]),
+            "max": _f(stats_row[7]),
+            "avg": _f(stats_row[8]),
         },
     }
 

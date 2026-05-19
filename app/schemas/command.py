@@ -15,6 +15,10 @@ class CommandAutoRequest(BaseModel):
     is_auto: bool
 
 
+class CommandRelayRequest(BaseModel):
+    state: bool
+
+
 class FeedScheduleValue(BaseModel):
     feed_time: datetime.time
     duration_seconds: int
@@ -23,17 +27,18 @@ class FeedScheduleValue(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class PendingCommandsResponse(BaseModel):
-    commands: list[CommandItem]
-    thresholds: ThresholdsResponse
-    feed_schedule: list[FeedScheduleValue]
-
 class CommandItem(BaseModel):
     id: int
     command_type: CommandType
     payload: dict | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PendingCommandsResponse(BaseModel):
+    commands: list[CommandItem]
+    thresholds: ThresholdsResponse
+    feed_schedule: list[FeedScheduleValue]
 
 
 class ActionItem(enum.Enum):

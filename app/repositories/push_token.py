@@ -32,3 +32,13 @@ class PushTokenRepository(BaseRepository):
         db.add(new_token)
         await db.flush()
         return new_token
+
+    @classmethod
+    async def get_active_tokens_by_user(cls, user_id: int, db: AsyncSession):
+        result = await db.execute(
+            select(cls.model).where(
+                cls.model.user_id == user_id,
+                cls.model.is_active == True
+            )
+        )
+        return result.scalars().all()

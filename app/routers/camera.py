@@ -3,15 +3,18 @@ from fastapi import APIRouter, Depends, Request
 from app.dependencies.dependencies import verify_api_key, get_current_user, get_current_user_optional
 from app.models import User
 from app.schemas.camera import CameraStatusResponse
-from app.services.camera_service import camera_frame_service, camera_stream_service, camera_snapshot_service, \
-    camera_status_service
+from app.services.camera_service import (
+    camera_frame_service,
+    camera_stream_service,
+    camera_snapshot_service,
+    camera_status_service,
+)
 
 router = APIRouter(prefix="/camera", tags=["Camera"])
 
 
 @router.post("/frame")
-async def post_camera_frame(request: Request,
-                           _: User = Depends(verify_api_key)):
+async def post_camera_frame(request: Request, _: User = Depends(verify_api_key)):
     body = await request.body()
     return await camera_frame_service(body)
 

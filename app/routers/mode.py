@@ -19,7 +19,7 @@ async def mode_current_get(user: User = Depends(get_current_user),
 async def mode_set(data: SetModeRequest,
                    user: User = Depends(get_current_user),
                    db: AsyncSession = Depends(get_db)):
-    return await mode_set_service(data, db)
+    return await mode_set_service(data, db, user_id=user.id)
 
 
 @router.post("/current", response_model=ModeCurrentResponse)

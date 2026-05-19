@@ -1,14 +1,13 @@
+import time
+
 from fastapi import HTTPException, Response
 from fastapi.responses import StreamingResponse
-import time
 
 from app.schemas.camera import CameraStatusResponse
 from app.services.camera_runtime import camera_runtime
 
-MAX_SIZE = 100 * 1024
-
+MAX_SIZE = 250 * 1024  # SVGA (800x600) кадры крупнее VGA
 BOUNDARY = "smart_coop"
-
 MAX_AGE = 2
 
 
@@ -20,19 +19,14 @@ async def camera_frame_service(frame: bytes):
     if not frame.startswith(b"\xff\xd8"):
         raise HTTPException(status_code=400, detail="Invalid JPEG data")
     await camera_runtime.set_frame(frame)
-
-    return {
-        "status": "ok",
-        "frame_size": len(frame),
-    }
+    return {"status": "ok", "frame_size": len(frame)}
 
 
-async  def mjpeg_generator():
+async def mjpeg_generator():
     while True:
         frame = await camera_runtime.wait_frame()
         if frame is None:
             continue
-
         yield (
             f"--{BOUNDARY}\r\n"
             "Content-Type: image/jpeg\r\n"
@@ -53,12 +47,10 @@ async def camera_snapshot_service():
 
     if not frame or not frame_time:
         raise HTTPException(status_code=503, detail="Camera offline")
-
-    age = time.time() - frame_time
-    if age > MAX_AGE:
+    if time.time() - frame_time > MAX_AGE:
         raise HTTPException(status_code=503, detail="Camera offline")
 
-    return  Response(content=frame, media_type="image/jpeg")
+    return Response(content=frame, media_type="image/jpeg")
 
 
 async def camera_status_service():
@@ -68,11 +60,9 @@ async def camera_status_service():
             last_frame_size_bytes=None,
             last_frame_age_seconds=None,
         )
-
     age = time.time() - camera_runtime.frame_time
-
     return CameraStatusResponse(
-        is_online= age < MAX_AGE,
+        is_online=age < MAX_AGE,
         last_frame_size_bytes=camera_runtime.frame_size,
-        last_frame_age_seconds=age
+        last_frame_age_seconds=age,
     )

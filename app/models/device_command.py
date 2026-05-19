@@ -10,11 +10,14 @@ from app.database.base import Base
 
 
 class CommandType(enum.Enum):
-    door_open = "door_open"
+    door_open  = "door_open"
     door_close = "door_close"
-    set_mode = "set_mode"
-    set_auto = "set_auto"
-    feed_now = "feed_now"
+    set_mode   = "set_mode"
+    set_auto   = "set_auto"
+    feed_now   = "feed_now"
+    set_heater = "set_heater"
+    set_vent   = "set_vent"
+    set_light  = "set_light"
 
 
 class DeviceCommand(Base):

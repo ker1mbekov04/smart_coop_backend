@@ -17,6 +17,7 @@ class SystemHealthConnResponse(BaseModel):
 
 class CameraItems(BaseModel):
     is_online: bool
+    last_frame_size_bytes: int | None = None
     last_frame_age_seconds: float | None
 
 

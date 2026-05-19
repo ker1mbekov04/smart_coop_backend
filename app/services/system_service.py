@@ -38,7 +38,7 @@ async def system_status_service(user_id: int, db: AsyncSession):
         period_start=datetime.now(timezone.utc) - timedelta(days=1), limit=5, offset=0, db=db)
     if last_sensor:
         diff = datetime.now(timezone.utc) - last_sensor.recorded_at
-        is_device_online = diff.total_seconds() < 30
+        is_device_online = diff.total_seconds() < 60
         device_last_seen = last_sensor.recorded_at
     else:
         is_device_online = False
@@ -47,7 +47,8 @@ async def system_status_service(user_id: int, db: AsyncSession):
     camera_status_data = await camera_status_service()
     camera_status = CameraItems(
         is_online=camera_status_data.is_online,
-        last_frame_age_seconds=camera_status_data.last_frame_age_seconds
+        last_frame_size_bytes=camera_status_data.last_frame_size_bytes,
+        last_frame_age_seconds=camera_status_data.last_frame_age_seconds,
     )
     return SystemStatusResponse(
         last_sensor=last_sensor,

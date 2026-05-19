@@ -13,7 +13,6 @@ class CameraRuntime:
         self.frame = frame
         self.frame_time = time.time()
         self.frame_size = len(frame)
-
         self.event.set()
         self.event = asyncio.Event()
 
@@ -23,5 +22,6 @@ class CameraRuntime:
         except asyncio.TimeoutError:
             return None
         return self.frame
+
 
 camera_runtime = CameraRuntime()
