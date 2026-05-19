@@ -1,9 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import SensorReading, DeviceState, Threshold
-from app.models.device_state import DoorStatus
-from app.repositories.device_state import DeviceStateRepository
+from app.models import SensorReading, Threshold
 from app.repositories.sensor_reading import SensorRepository
 from app.repositories.thresholds import ThresholdRepository
 from app.repositories.user import UserRepository
@@ -33,21 +31,10 @@ async def sensor_data_service(data: SensorDataRequest, db: AsyncSession, user_id
             lux_light_on=300, lux_light_off=350,
         )
 
+    await db.commit()
+
     user = await UserRepository.get_by_id(user_id, db)
     await push_service.check_and_notify(data.temperature, data.humidity, threshold, user, db)
-
-    device_state = await DeviceStateRepository.get_first(db)
-    if not device_state:
-        device_state = DeviceState(
-            heater=False, ventilation=False, lighting=False,
-            door=DoorStatus.closed, feeder=False,
-            recorded_at=datetime.now(timezone.utc)
-        )
-        await DeviceStateRepository.create(device_state, db)
-    else:
-        device_state.recorded_at = datetime.now(timezone.utc)
-    await db.commit()
-    await db.refresh(device_state)
 
     # Публикуем real-time данные в приложение
     await publish_sensor_to_app({
