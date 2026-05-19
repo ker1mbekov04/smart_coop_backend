@@ -46,8 +46,8 @@ async def sensor_data_service(data: SensorDataRequest, db: AsyncSession, user_id
         await DeviceStateRepository.create(device_state, db)
     else:
         device_state.recorded_at = datetime.now(timezone.utc)
-        await db.commit()
-        await db.refresh(device_state)
+    await db.commit()
+    await db.refresh(device_state)
 
     # Публикуем real-time данные в приложение
     await publish_sensor_to_app({

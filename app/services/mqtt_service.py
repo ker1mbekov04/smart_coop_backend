@@ -37,12 +37,13 @@ def on_disconnect(client, packet, exc=None):
 
 
 def on_connect(client, flags, rc, properties):
-    print(f"[MQTT] Connected (rc={rc})")
+    print(f"[MQTT] Connected to broker (rc={rc})")
     client.subscribe("coop/device/+/telemetry", qos=1)
     client.subscribe("coop/device/+/state",     qos=1)
     client.subscribe("coop/device/+/mode",      qos=1)
     client.subscribe("coop/device/+/ack",       qos=1)
     client.subscribe("coop/device/+/status",    qos=1)
+    print("[MQTT] Subscribed to all device topics")
 
 
 # ── Хелперы разбора топика ────────────────────────────────────────────
@@ -61,6 +62,7 @@ async def _get_user_id(db) -> int | None:
 
 # ── Обработчики входящих сообщений ───────────────────────────────────
 async def handle_telemetry(device_id: str, payload: bytes):
+    print(f"[MQTT] << telemetry from {device_id}: {payload[:80]}")
     try:
         data = json.loads(payload)
     except json.JSONDecodeError:
@@ -70,7 +72,7 @@ async def handle_telemetry(device_id: str, payload: bytes):
     async with async_session_local() as db:
         user_id = await _get_user_id(db)
         if user_id is None:
-            print("[MQTT] DEVICE_API_KEY не найден в БД")
+            print("[MQTT] DEVICE_API_KEY не найден в БД — проверьте .env")
             return
 
         sensor = SensorDataRequest(
@@ -79,9 +81,11 @@ async def handle_telemetry(device_id: str, payload: bytes):
             light_level=data.get("light_level"),
         )
         await sensor_data_service(sensor, db, user_id)
+        print(f"[MQTT] telemetry saved: t={data.get('temperature')} h={data.get('humidity')}")
 
 
 async def handle_state(device_id: str, payload: bytes):
+    print(f"[MQTT] << state from {device_id}: {payload[:80]}")
     try:
         data = json.loads(payload)
     except json.JSONDecodeError:
