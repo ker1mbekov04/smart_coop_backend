@@ -196,7 +196,7 @@ async def handle_status(device_id: str, payload: bytes):
 
 
 # ── Главный обработчик MQTT ───────────────────────────────────────────
-def on_message(client, topic, payload, qos, properties):
+async def on_message(client, topic, payload, qos, properties):
     device_id, action = _parse_device_topic(topic)
     if device_id is None:
         return
