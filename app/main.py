@@ -25,7 +25,7 @@ from app.config.settings import settings
 from app.repositories.user import UserRepository
 import time
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=False)
 
 
 async def _camera_offline_monitor():

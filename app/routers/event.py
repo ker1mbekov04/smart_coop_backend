@@ -11,7 +11,7 @@ from app.services.event_log import events_get_service
 router = APIRouter(prefix="/events", tags=["Events"])
 
 
-@router.get("/", response_model=EventsResponse)
+@router.get("", response_model=EventsResponse)
 async def get_events(
         period: PeriodValue = Query(default=PeriodValue.h24),
         severity: SeverityFilter = Query(default=SeverityFilter.all),

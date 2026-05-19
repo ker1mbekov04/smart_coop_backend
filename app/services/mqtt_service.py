@@ -215,6 +215,9 @@ async def start_mqtt():
     client.on_connect    = on_connect
     client.on_disconnect = on_disconnect
 
+    if settings.MQTT_USER:
+        client.set_auth_credentials(settings.MQTT_USER, settings.MQTT_PASS)
+
     ssl_ctx = None
     if settings.MQTT_PORT == 8883:
         import ssl
@@ -226,8 +229,6 @@ async def start_mqtt():
         keepalive=30,
         version=4,
         ssl=ssl_ctx,
-        username=settings.MQTT_USER or None,
-        password=settings.MQTT_PASS or None,
     )
     set_mqtt_client(client)
 

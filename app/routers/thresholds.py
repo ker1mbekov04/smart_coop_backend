@@ -9,13 +9,13 @@ from app.services.threshold_service import get_current_thresholds, thresholds_up
 router = APIRouter(prefix="/thresholds", tags=["Thresholds"])
 
 
-@router.get("/", response_model=ThresholdsResponse)
+@router.get("", response_model=ThresholdsResponse)
 async def thresholds_get(user: User = Depends(get_current_user),
                          db: AsyncSession = Depends(get_db)):
     return await get_current_thresholds(db)
 
 
-@router.put("/", response_model=ThresholdsResponse)
+@router.put("", response_model=ThresholdsResponse)
 async def thresholds_update(data: ThresholdsUpdateRequest,
                          user: User = Depends(get_current_user),
                          db: AsyncSession = Depends(get_db)):
