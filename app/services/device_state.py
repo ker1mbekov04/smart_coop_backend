@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import DeviceState
+from app.models.device_state import DoorStatus
 from app.repositories.device_state import DeviceStateRepository
 from app.schemas.device import DeviceStateRequest, DeviceResponse
 from app.services.mqtt_publisher import publish_state_to_app
