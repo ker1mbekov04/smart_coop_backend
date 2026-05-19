@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     MQTT_BROKER: str = "localhost"
     MQTT_PORT: int = 1883
+    MQTT_USER: str = ""
+    MQTT_PASS: str = ""
     DEVICE_ID: str = "ESP32-COOP-01"
     DEVICE_API_KEY: str = ""
 

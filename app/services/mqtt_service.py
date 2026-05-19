@@ -215,11 +215,20 @@ async def start_mqtt():
     client.on_connect    = on_connect
     client.on_disconnect = on_disconnect
 
+    if settings.MQTT_USER:
+        client.set_auth(settings.MQTT_USER, settings.MQTT_PASS)
+
+    ssl_ctx = None
+    if settings.MQTT_PORT == 8883:
+        import ssl
+        ssl_ctx = ssl.create_default_context()
+
     await client.connect(
         settings.MQTT_BROKER,
         settings.MQTT_PORT,
         keepalive=30,
-        version=4,         # MQTT 3.1.1
+        version=4,
+        ssl=ssl_ctx,
     )
     set_mqtt_client(client)
 
