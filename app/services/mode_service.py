@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, timedelta
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,3 +102,10 @@ async def mode_set_service(data: SetModeRequest, db: AsyncSession, user_id: int 
         await push_service.send_push_to_user(user_id, "mode_changed", db)
 
     return created_mode
+
+
+async def mode_history_service(limit: int, offset: int, db: AsyncSession):
+    period_start = datetime.now(timezone.utc) - timedelta(days=30)
+    items = await SystemModeRepository.get_data_by_period(period_start, limit, offset, db)
+    count = await SystemModeRepository.get_count(period_start, db)
+    return items, count
