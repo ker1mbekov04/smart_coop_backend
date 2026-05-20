@@ -95,9 +95,14 @@ PUSH_TEMPLATES = {
         "body": "Датчик DHT22/BH1750 выдаёт ошибки чтения.",
         "navigate_to": "/dashboard",
     },
-    "door_changed": {
-        "title": "🚪 Состояние двери изменилось",
-        "body": "Дверь выгула изменила состояние.",
+    "door_opened": {
+        "title": "🚪 Дверь открылась",
+        "body": "Дверь выгула полностью открылась.",
+        "navigate_to": "/devices",
+    },
+    "door_closed": {
+        "title": "🚪 Дверь закрылась",
+        "body": "Дверь выгула полностью закрылась.",
         "navigate_to": "/devices",
     },
     "feeding_done": {
@@ -109,6 +114,7 @@ PUSH_TEMPLATES = {
         "title": "🔄 Режим изменён",
         "body": "Система сменила режим работы.",
         "navigate_to": "/modes",
+        "_dynamic_body": True,
     },
     "system_recovered": {
         "title": "✅ Система восстановлена",
@@ -155,6 +161,13 @@ async def _send_fcm(token: str, title: str, body: str, data: dict) -> bool:
         logger.error(f"FCM send error: {e}")
         return False
 
+MODE_DISPLAY_NAMES = {
+    "day_moderate": "Дневной умеренный ☀️",
+    "day_frost":    "Дневной морозный ❄️",
+    "night_cold":   "Ночной холодный 🌙",
+    "overheat":     "Режим перегрева 🔥",
+}
+
 # ── Публичный API ──────────────────────────────────────────────────────
 async def send_push_to_user(user_id: int, event_type: str, db: AsyncSession,
                              extra_data: dict = None):
@@ -172,13 +185,17 @@ async def send_push_to_user(user_id: int, event_type: str, db: AsyncSession,
     if not tokens:
         return
 
+    # Build title/body — allow extra_data overrides
+    title = extra_data.get("title", template["title"]) if extra_data else template["title"]
+    body  = extra_data.get("body",  template["body"])  if extra_data else template["body"]
+
     data = {"navigate_to": template["navigate_to"], "event_type": event_type}
     if extra_data:
-        data.update(extra_data)
+        data.update({k: v for k, v in extra_data.items() if k not in ("title", "body")})
 
     sent = 0
     for push_token in tokens:
-        ok = await _send_fcm(push_token.token, template["title"], template["body"], data)
+        ok = await _send_fcm(push_token.token, title, body, data)
         if ok:
             sent += 1
 
@@ -189,7 +206,7 @@ async def send_push_to_user(user_id: int, event_type: str, db: AsyncSession,
     # Save to per-user inbox regardless of FCM delivery
     severity = "critical" if "critical" in event_type else ("info" if event_type in ("feeding_done", "system_recovered", "mode_changed") else "warning")
     from app.repositories.user_notification import UserNotificationRepository
-    await UserNotificationRepository.create(db, user_id, template["title"], template["body"], severity)
+    await UserNotificationRepository.create(db, user_id, title, body, severity)
 
 
 async def check_and_notify(temperature, humidity, thresholds, user, db: AsyncSession):

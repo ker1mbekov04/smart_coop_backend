@@ -9,6 +9,7 @@ from app.models.device_command import DeviceCommand
 from app.models.event_log import EventLog, EventType, Severity
 from app.repositories.device_command import DeviceCommandRepository
 from app.repositories.device_state import DeviceStateRepository
+from app.repositories.system_mode import SystemModeRepository
 from app.repositories.event_log import EventLogRepository
 from app.repositories.feed_shedule import FeedScheduleRepository
 from app.repositories.user import UserRepository
@@ -98,10 +99,12 @@ async def handle_state(device_id: str, payload: bytes):
         device = DeviceStateRequest(**data)
         await device_state_create_service(device, db)
 
-        if old_door is not None and old_door != device.door:
+        new_door = device.door
+        if old_door is not None and old_door != new_door and new_door in ("open", "closed"):
+            event_type = "door_opened" if new_door == "open" else "door_closed"
             user_id = await _get_user_id(db)
             if user_id:
-                await push_service.send_push_to_user(user_id, "door_changed", db)
+                await push_service.send_push_to_user(user_id, event_type, db)
 
 
 async def handle_mode(device_id: str, payload: bytes):
@@ -111,15 +114,24 @@ async def handle_mode(device_id: str, payload: bytes):
         return
 
     async with async_session_local() as db:
-        mode_req = ModeCurrentRequest(
-            mode_name=data.get("mode_name", "day_moderate"),
-            is_auto=data.get("is_auto", True),
-        )
+        new_mode_name = data.get("mode_name", "day_moderate")
+        is_auto = data.get("is_auto", True)
+
+        old_mode = await SystemModeRepository.get_last(db)
+        old_mode_name = old_mode.mode_name if old_mode else None
+
+        mode_req = ModeCurrentRequest(mode_name=new_mode_name, is_auto=is_auto)
         await mode_current_create_service(mode_req, db)
 
-        user_id = await _get_user_id(db)
-        if user_id:
-            await push_service.send_push_to_user(user_id, "mode_changed", db)
+        # Only push when mode_name actually changes (not just auto↔manual toggle)
+        if old_mode_name != new_mode_name:
+            user_id = await _get_user_id(db)
+            if user_id:
+                display = push_service.MODE_DISPLAY_NAMES.get(new_mode_name, new_mode_name)
+                await push_service.send_push_to_user(
+                    user_id, "mode_changed", db,
+                    extra_data={"body": f"Активирован режим: {display}"},
+                )
 
     await publish_mode_to_app({
         "mode_name": data.get("mode_name", "day_moderate"),

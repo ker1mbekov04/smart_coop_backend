@@ -99,7 +99,14 @@ async def mode_set_service(data: SetModeRequest, db: AsyncSession, user_id: int 
     })
 
     if user_id:
-        await push_service.send_push_to_user(user_id, "mode_changed", db)
+        last_mode = await SystemModeRepository.get_last(db)
+        # Send push only when mode name changed (not auto↔manual toggle)
+        if last_mode and last_mode.mode_name != data.mode_name.value:
+            display = push_service.MODE_DISPLAY_NAMES.get(data.mode_name.value, data.mode_name.value)
+            await push_service.send_push_to_user(
+                user_id, "mode_changed", db,
+                extra_data={"body": f"Активирован режим: {display}"},
+            )
 
     return created_mode
 
