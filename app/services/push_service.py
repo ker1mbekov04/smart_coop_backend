@@ -186,6 +186,11 @@ async def send_push_to_user(user_id: int, event_type: str, db: AsyncSession,
         _mark_sent(user_id, event_type)
         logger.info(f"Push '{event_type}' sent to user {user_id} ({sent} tokens)")
 
+    # Save to per-user inbox regardless of FCM delivery
+    severity = "critical" if "critical" in event_type else ("info" if event_type in ("feeding_done", "system_recovered", "mode_changed") else "warning")
+    from app.repositories.user_notification import UserNotificationRepository
+    await UserNotificationRepository.create(db, user_id, template["title"], template["body"], severity)
+
 
 async def check_and_notify(temperature, humidity, thresholds, user, db: AsyncSession):
     """Проверка пороговых значений и отправка push."""

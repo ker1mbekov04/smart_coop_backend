@@ -44,11 +44,27 @@ async def _camera_offline_monitor():
                 pass
 
 
+async def _cleanup_old_notifications():
+    """Delete user_notifications older than 30 days, runs daily."""
+    while True:
+        await asyncio.sleep(86400)
+        try:
+            from app.repositories.user_notification import UserNotificationRepository
+            async with async_session_local() as db:
+                removed = await UserNotificationRepository.delete_older_than(db, days=30)
+                if removed:
+                    import logging
+                    logging.getLogger(__name__).info(f"Cleaned up {removed} old notifications")
+        except Exception:
+            pass
+
+
 @app.on_event("startup")
 async def startup():
     init_firebase()
     asyncio.create_task(start_mqtt())
     asyncio.create_task(_camera_offline_monitor())
+    asyncio.create_task(_cleanup_old_notifications())
 
 app.add_middleware(
     CORSMiddleware,

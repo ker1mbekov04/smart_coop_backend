@@ -35,3 +35,18 @@ class HistoryEventItem(BaseModel):
 class NotificationHistoryResponse(BaseModel):
     events: list[HistoryEventItem]
     count: int
+
+
+class InboxNotificationItem(BaseModel):
+    id: int
+    title: str
+    body: str
+    severity: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InboxNotificationResponse(BaseModel):
+    items: list[InboxNotificationItem]
+    count: int

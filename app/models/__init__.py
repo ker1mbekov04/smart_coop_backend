@@ -9,6 +9,7 @@ from app.models.device_command import DeviceCommand
 from app.models.feed_schedule import FeedSchedule
 from app.models.sensor_reading import SensorReading
 from app.models.refresh_token import RefreshToken
+from app.models.user_notification import UserNotification
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "FeedSchedule",
     "SensorReading",
     "RefreshToken",
+    "UserNotification",
 ]

@@ -39,12 +39,12 @@ async def publish_config_to_device(thresholds_dict: dict, feed_schedules: list[d
 
 # ── App → real-time сенсоры ──────────────────────────────────────────
 async def publish_sensor_to_app(data: dict):
-    _publish("coop/app/sensor", data, qos=0, retain=False)
+    _publish("coop/app/sensor", data, qos=1, retain=True)
 
 
 # ── App → real-time состояние устройств ─────────────────────────────
 async def publish_state_to_app(data: dict):
-    _publish("coop/app/state", data, qos=0, retain=False)
+    _publish("coop/app/state", data, qos=1, retain=True)
 
 
 # ── App → события (алармы, онлайн/офлайн) ───────────────────────────
