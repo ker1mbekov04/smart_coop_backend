@@ -39,7 +39,7 @@ async def get_history_sensor_service(period: PeriodValue,
                              db: AsyncSession):
     period_start = get_period_start(period)
 
-    data = await SensorRepository.get_data_by_period(period_start, limit, offset, db)
+    data = await SensorRepository.get_data_by_period(period_start, period.value, db)
 
     data = filter_by_parameter(data, parameter)
 
